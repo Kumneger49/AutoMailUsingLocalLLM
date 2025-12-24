@@ -1,0 +1,72 @@
+
+We have already got our project idea and also chose the right local llm for this task which is Llama-2-7B-instruct
+so now of to finding the right dataset we can use to finetune this model
+    apprently llama-2-7B-instruct does not exist in ollama library so we proceed with a similar model llama3.1:8B which has 
+    similar capability. 
+
+we tested llama3.1 with a couple of examples to respond to email and write a draft and it turned out be like this: 
+            >>> Write a short professional reply to this email:
+            ... 
+            ... "Hi Kumneger, can you send me the latest project report by today?"
+            ... 
+            Here is a short professional reply:
+
+            "Hi [Name],
+
+            I've checked on the status of the project report. Unfortunately, I don't have an update on its completion yet. I'll follow up with the team lead to confirm when it will be available.
+
+            Best regards,
+            Kumneger"
+
+            >>> Summarize this email thread and suggest a reply:
+            ... 
+            ... Email 1: "Hi Kumneger, can you update me on the Q2 metrics?"
+            ... Email 2: "Also, we need to finalize the presentation for Friday."
+            ... Email 3: "Let me know if you need help compiling data."
+            ... 
+            **Summary:**
+
+            The email thread consists of three messages requesting updates from Kumneger:
+
+            1. An initial request for an update on Q2 metrics.
+            2. A subsequent request to finalize a presentation for Friday.
+            3. An offer of assistance in compiling data for the presentation.
+
+            **Reply Suggestion:**
+
+            Since Kumneger hasn't responded yet, I'd suggest sending a brief reply to acknowledge their requests and ask for an update on the status of both tasks:
+
+            "Hi [Name],
+
+            Thanks for reaching out about the Q2 metrics and presentation. I'm still working on gathering the necessary data, but I'll prioritize these tasks to meet the deadline.
+
+            I may take you up on your offer of help with compiling data - I'll let you know if I need assistance.
+
+            Best regards,
+            Kumneger"
+
+            >>> Draft a reply and schedule a meeting at 3 PM tomorrow:
+            ... 
+            ... "Hi Kumneger, are you free to discuss the new client proposal tomorrow afternoon?"
+            ... 
+            Here's a draft reply:
+
+            "Hi [Name],
+
+            Yes, I'm available to discuss the new client proposal. How about we schedule a meeting for 3:00 PM tomorrow? Would that work for you?
+
+            Looking forward to discussing it with you then.
+
+            Best regards,
+            Kumneger"
+
+            Alternatively, if you'd like to make it more concise:
+
+            "Hi [Name],
+
+            I'm free to meet tomorrow at 3:00 PM. Shall we discuss the new client proposal then?
+
+            Best regards,
+            Kumneger"
+            
+and i believe this means we can proceed with it
