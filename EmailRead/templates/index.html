@@ -1,0 +1,987 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AutoMail - AI Email Assistant</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary-orange: #FF6B35;
+            --dark-orange: #E85A2A;
+            --light-orange: #FF8C61;
+            --accent-teal: #00CED1;
+            --dark-teal: #008B8B;
+            --bg-dark: #1A1A2E;
+            --bg-card: #16213E;
+            --text-primary: #FFFFFF;
+            --text-secondary: #B8B8D1;
+            --border-color: #2A2A3E;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, var(--bg-dark) 0%, #0F0F1E 100%);
+            color: var(--text-primary);
+            min-height: 100vh;
+            padding: 20px;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding: 30px 0;
+            background: linear-gradient(135deg, var(--primary-orange) 0%, var(--dark-orange) 100%);
+            border-radius: 20px;
+            box-shadow: 0 10px 40px rgba(255, 107, 53, 0.3);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(0, 206, 209, 0.1) 0%, transparent 70%);
+            animation: pulse 8s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); opacity: 0.5; }
+            50% { transform: scale(1.1); opacity: 0.8; }
+        }
+
+        .header h1 {
+            font-size: 3rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+            position: relative;
+            z-index: 1;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .header p {
+            font-size: 1.2rem;
+            opacity: 0.95;
+            position: relative;
+            z-index: 1;
+        }
+
+        .stats-bar {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: var(--bg-card);
+            padding: 25px;
+            border-radius: 15px;
+            border: 1px solid var(--border-color);
+            text-align: center;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: linear-gradient(90deg, var(--primary-orange), var(--accent-teal));
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(255, 107, 53, 0.2);
+            border-color: var(--primary-orange);
+        }
+
+        .stat-value {
+            font-size: 2.5rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--primary-orange), var(--accent-teal));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .email-list {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .email-card {
+            background: var(--bg-card);
+            border-radius: 20px;
+            padding: 30px;
+            border: 1px solid var(--border-color);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .email-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 5px;
+            height: 100%;
+            background: linear-gradient(180deg, var(--primary-orange), var(--accent-teal));
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .email-card:hover {
+            transform: translateX(5px);
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.3);
+            border-color: var(--primary-orange);
+        }
+
+        .email-card:hover::before {
+            opacity: 1;
+        }
+
+        .email-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .email-meta {
+            flex: 1;
+        }
+
+        .email-from {
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: var(--primary-orange);
+            margin-bottom: 8px;
+        }
+
+        .email-subject {
+            font-size: 1.1rem;
+            color: var(--text-primary);
+            margin-bottom: 5px;
+        }
+
+        .email-date {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+        }
+
+        .email-badge {
+            background: linear-gradient(135deg, var(--primary-orange), var(--dark-orange));
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            box-shadow: 0 4px 15px rgba(255, 107, 53, 0.3);
+        }
+
+
+        .email-content {
+            margin: 25px 0;
+        }
+
+        .content-section {
+            margin-bottom: 25px;
+        }
+
+        .section-title {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 15px;
+            color: var(--accent-teal);
+        }
+
+        .section-title::before {
+            content: '';
+            width: 4px;
+            height: 20px;
+            background: linear-gradient(180deg, var(--primary-orange), var(--accent-teal));
+            border-radius: 2px;
+        }
+
+        .section-content {
+            background: rgba(0, 206, 209, 0.05);
+            padding: 20px;
+            border-radius: 12px;
+            border-left: 3px solid var(--accent-teal);
+            color: var(--text-secondary);
+            line-height: 1.8;
+            font-size: 1rem;
+        }
+
+        .section-content.summary {
+            border-left-color: var(--primary-orange);
+            background: rgba(255, 107, 53, 0.05);
+        }
+
+        .section-content.reply {
+            border-left-color: var(--accent-teal);
+            background: rgba(0, 206, 209, 0.05);
+        }
+
+        .processing-time {
+            display: inline-block;
+            background: var(--bg-dark);
+            padding: 5px 12px;
+            border-radius: 15px;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            margin-top: 10px;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 80px 20px;
+            color: var(--text-secondary);
+        }
+
+        .empty-state-icon {
+            font-size: 4rem;
+            margin-bottom: 20px;
+            opacity: 0.5;
+        }
+
+        .empty-state h2 {
+            font-size: 1.5rem;
+            margin-bottom: 10px;
+            color: var(--text-primary);
+        }
+
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255, 107, 53, 0.3);
+            border-radius: 50%;
+            border-top-color: var(--primary-orange);
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .controls-bar {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .search-box {
+            flex: 1;
+            min-width: 250px;
+        }
+
+        .search-box input {
+            width: 100%;
+            padding: 15px 20px;
+            background: var(--bg-card);
+            border: 2px solid var(--border-color);
+            border-radius: 12px;
+            color: var(--text-primary);
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .search-box input:focus {
+            outline: none;
+            border-color: var(--primary-orange);
+            box-shadow: 0 0 0 3px rgba(255, 107, 53, 0.1);
+        }
+
+        .filter-buttons {
+            display: flex;
+            gap: 10px;
+        }
+
+        .filter-btn {
+            padding: 12px 24px;
+            background: var(--bg-card);
+            border: 2px solid var(--border-color);
+            border-radius: 10px;
+            color: var(--text-secondary);
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .filter-btn:hover {
+            border-color: var(--primary-orange);
+            color: var(--text-primary);
+            transform: translateY(-2px);
+        }
+
+        .filter-btn.active {
+            background: linear-gradient(135deg, var(--primary-orange), var(--dark-orange));
+            border-color: var(--primary-orange);
+            color: white;
+            box-shadow: 0 4px 15px rgba(255, 107, 53, 0.3);
+        }
+
+        .email-card {
+            animation: slideIn 0.5s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .email-card.new-email {
+            animation: slideInBounce 0.6s ease-out;
+            border: 2px solid var(--primary-orange);
+            box-shadow: 0 0 30px rgba(255, 107, 53, 0.3);
+        }
+
+        @keyframes slideInBounce {
+            0% {
+                opacity: 0;
+                transform: translateY(-30px) scale(0.9);
+            }
+            50% {
+                transform: translateY(5px) scale(1.02);
+            }
+            100% {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        .copy-btn {
+            background: rgba(0, 206, 209, 0.1);
+            border: 1px solid var(--accent-teal);
+            color: var(--accent-teal);
+            padding: 8px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            margin-top: 10px;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .copy-btn:hover {
+            background: var(--accent-teal);
+            color: white;
+            transform: scale(1.05);
+        }
+
+        .copy-btn.copied {
+            background: var(--accent-teal);
+            color: white;
+        }
+
+        .expand-btn {
+            background: transparent;
+            border: none;
+            color: var(--accent-teal);
+            cursor: pointer;
+            font-size: 1.2rem;
+            padding: 5px;
+            transition: transform 0.3s ease;
+        }
+
+        .expand-btn:hover {
+            transform: scale(1.2);
+        }
+
+        .expand-btn.expanded {
+            transform: rotate(180deg);
+        }
+
+        .collapsible-content {
+            max-height: 200px;
+            overflow: hidden;
+            transition: max-height 0.3s ease;
+            position: relative;
+        }
+
+        .collapsible-content.expanded {
+            max-height: 2000px;
+        }
+
+        .fade-overlay {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 50px;
+            background: linear-gradient(to bottom, transparent, var(--bg-card));
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+
+        .collapsible-content.expanded .fade-overlay {
+            opacity: 0;
+        }
+
+        .toast {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: linear-gradient(135deg, var(--primary-orange), var(--dark-orange));
+            color: white;
+            padding: 20px 30px;
+            border-radius: 12px;
+            box-shadow: 0 10px 40px rgba(255, 107, 53, 0.4);
+            z-index: 1000;
+            animation: toastSlideIn 0.5s ease-out;
+            max-width: 400px;
+        }
+
+        @keyframes toastSlideIn {
+            from {
+                transform: translateX(400px);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        .toast.hiding {
+            animation: toastSlideOut 0.3s ease-in forwards;
+        }
+
+        @keyframes toastSlideOut {
+            to {
+                transform: translateX(400px);
+                opacity: 0;
+            }
+        }
+
+        .refresh-btn {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background: linear-gradient(135deg, var(--primary-orange), var(--dark-orange));
+            color: white;
+            border: none;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            font-size: 1.5rem;
+            cursor: pointer;
+            box-shadow: 0 8px 25px rgba(255, 107, 53, 0.4);
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .refresh-btn:hover {
+            transform: scale(1.1) rotate(90deg);
+            box-shadow: 0 12px 35px rgba(255, 107, 53, 0.6);
+        }
+
+        .refresh-btn.loading {
+            animation: spin 1s linear infinite;
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2rem;
+            }
+
+            .email-header {
+                flex-direction: column;
+            }
+
+            .refresh-btn {
+                bottom: 20px;
+                right: 20px;
+                width: 50px;
+                height: 50px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📧 AutoMail</h1>
+            <p>AI-Powered Email Assistant</p>
+        </div>
+
+        <div class="stats-bar">
+            <div class="stat-card">
+                <div class="stat-value" id="total-emails" data-target="0">0</div>
+                <div class="stat-label">Total Emails</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="processed-today" data-target="0">0</div>
+                <div class="stat-label">Processed Today</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="avg-time" data-target="0">0s</div>
+                <div class="stat-label">Avg Processing</div>
+            </div>
+        </div>
+
+        <div class="controls-bar">
+            <div class="search-box">
+                <input type="text" id="search-input" placeholder="🔍 Search emails..." oninput="filterEmails()">
+            </div>
+            <div class="filter-buttons">
+                <button class="filter-btn active" onclick="setFilter('all')" data-filter="all">All</button>
+                <button class="filter-btn" onclick="setFilter('today')" data-filter="today">Today</button>
+                <button class="filter-btn" onclick="setFilter('recent')" data-filter="recent">Recent</button>
+            </div>
+        </div>
+
+        <div class="email-list" id="email-list">
+            <div class="empty-state">
+                <div class="empty-state-icon">🔄</div>
+                <h2>Fetching unread emails...</h2>
+                <p>Processing all unread emails from your Gmail inbox</p>
+            </div>
+        </div>
+    </div>
+
+    <button class="refresh-btn" onclick="loadEmails()" title="Refresh Email List">🔄</button>
+
+    <script>
+        let emails = [];
+        let filteredEmails = [];
+        let currentFilter = 'all';
+        let previousEmailCount = 0;
+
+        async function loadEmails() {
+            const refreshBtn = document.querySelector('.refresh-btn');
+            if (refreshBtn) refreshBtn.classList.add('loading');
+            
+            try {
+                const response = await fetch('/api/emails');
+                const data = await response.json();
+                const newEmails = data.emails || [];
+                
+                // Check for new emails (only if not first load)
+                const wasFirstLoad = previousEmailCount === 0 && emails.length === 0;
+                if (!wasFirstLoad && newEmails.length > previousEmailCount) {
+                    const newCount = newEmails.length - previousEmailCount;
+                    showToast(`📧 ${newCount} new email${newCount > 1 ? 's' : ''} processed!`);
+                }
+                
+                emails = newEmails;
+                previousEmailCount = emails.length;
+                applyFilter();
+                renderEmails();
+                updateStats();
+            } catch (error) {
+                console.error('Error loading emails:', error);
+                showToast('❌ Error loading emails', 'error');
+            } finally {
+                if (refreshBtn) refreshBtn.classList.remove('loading');
+            }
+        }
+
+        function showToast(message, type = 'success') {
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            toast.textContent = message;
+            document.body.appendChild(toast);
+            
+            setTimeout(() => {
+                toast.classList.add('hiding');
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+
+        function setFilter(filter) {
+            currentFilter = filter;
+            document.querySelectorAll('.filter-btn').forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.filter === filter);
+            });
+            applyFilter();
+        }
+
+        function applyFilter() {
+            const today = new Date().toDateString();
+            const searchTerm = document.getElementById('search-input').value.toLowerCase();
+            
+            filteredEmails = emails.filter(email => {
+                // Apply date filter
+                if (currentFilter === 'today') {
+                    if (!email.date) return false;
+                    if (new Date(email.date).toDateString() !== today) return false;
+                } else if (currentFilter === 'recent') {
+                    if (!email.date) return false;
+                    const emailDate = new Date(email.date);
+                    const daysAgo = (new Date() - emailDate) / (1000 * 60 * 60 * 24);
+                    if (daysAgo > 7) return false;
+                }
+                
+                // Apply search filter
+                if (searchTerm) {
+                    const searchable = [
+                        email.from || '',
+                        email.subject || '',
+                        email.summary || '',
+                        email.draft_reply || '',
+                        email.body || ''
+                    ].join(' ').toLowerCase();
+                    if (!searchable.includes(searchTerm)) return false;
+                }
+                
+                return true;
+            });
+            
+            renderEmails();
+        }
+
+        function filterEmails() {
+            applyFilter();
+        }
+
+        function renderEmails() {
+            const container = document.getElementById('email-list');
+            
+            if (filteredEmails.length === 0) {
+                // Only update if empty state changed
+                if (!container.querySelector('.empty-state')) {
+                    container.innerHTML = `
+                        <div class="empty-state">
+                            <div class="empty-state-icon">📬</div>
+                            <h2>${emails.length === 0 ? 'No unread emails' : 'No emails match your filter'}</h2>
+                            <p>${emails.length === 0 ? 'All your emails have been read. New unread emails will appear here automatically.' : 'Try adjusting your search or filter criteria.'}</p>
+                        </div>
+                    `;
+                }
+                return;
+            }
+            
+            // Track which emails we've seen before to avoid re-animating
+            if (!window.seenEmailIds) {
+                window.seenEmailIds = new Set();
+            }
+            
+            // Build HTML string
+            const emailHTML = filteredEmails.map((email, index) => {
+                const emailId = email.email_id || `email-${index}-${email.date || ''}`;
+                const isNew = !window.seenEmailIds.has(emailId);
+                if (isNew) {
+                    window.seenEmailIds.add(emailId);
+                }
+                const hasSummary = email.summary && email.summary.trim().length > 0;
+                const hasReply = email.draft_reply && email.draft_reply.trim().length > 0;
+                const isProcessing = !hasSummary && !hasReply && !email.error;
+                
+                return `
+                <div class="email-card ${isNew ? 'new-email' : ''}" data-email-id="${email.email_id || index}">
+                    <div class="email-header">
+                        <div class="email-meta">
+                            <div class="email-from">${escapeHtml(email.from || 'Unknown')}</div>
+                            <div class="email-subject">${escapeHtml(email.subject || 'No Subject')}</div>
+                            <div class="email-date">${formatDate(email.date)}</div>
+                        </div>
+                        <div style="display: flex; gap: 10px; align-items: center;">
+                            <div class="email-badge">
+                                ${isProcessing ? '⏳ Processing...' : hasSummary || hasReply ? '✅ Processed' : '❌ Error'}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    ${email.error ? `
+                        <div class="email-content">
+                            <div class="content-section">
+                                <div class="section-title">❌ Error</div>
+                                <div class="section-content" style="border-left-color: #ff4444; background: rgba(255, 68, 68, 0.05);">
+                                    ${escapeHtml(email.error)}
+                                </div>
+                            </div>
+                        </div>
+                    ` : ''}
+                    
+                    ${hasSummary ? `
+                        <div class="email-content">
+                            <div class="content-section">
+                                <div class="section-title">
+                                    📝 Summary
+                                    <button class="expand-btn" onclick="toggleExpand(this, 'summary-${index}')">▼</button>
+                                </div>
+                                <div class="collapsible-content" id="summary-${index}">
+                                    <div class="section-content summary">${escapeHtml(email.summary)}</div>
+                                    <div class="fade-overlay"></div>
+                                </div>
+                                <div style="display: flex; gap: 10px; margin-top: 10px;">
+                                    <button class="copy-btn" onclick="copyToClipboard(${JSON.stringify(email.summary)}, this)">📋 Copy Summary</button>
+                                    ${email.summary_time ? `<div class="processing-time">Generated in ${email.summary_time}s</div>` : ''}
+                                </div>
+                            </div>
+                        </div>
+                    ` : isProcessing ? `
+                        <div class="email-content">
+                            <div class="content-section">
+                                <div class="section-title">⏳ Processing Summary...</div>
+                                <div class="section-content">
+                                    <div class="loading"></div> Generating AI summary...
+                                </div>
+                            </div>
+                        </div>
+                    ` : ''}
+                    
+                    ${hasReply ? `
+                        <div class="email-content">
+                            <div class="content-section">
+                                <div class="section-title">
+                                    ✍️ Draft Reply
+                                    <button class="expand-btn" onclick="toggleExpand(this, 'reply-${index}')">▼</button>
+                                </div>
+                                <div class="collapsible-content" id="reply-${index}">
+                                    <div class="section-content reply">${formatReply(email.draft_reply)}</div>
+                                    <div class="fade-overlay"></div>
+                                </div>
+                                <div style="display: flex; gap: 10px; margin-top: 10px;">
+                                    <button class="copy-btn" onclick="copyToClipboard(${JSON.stringify(email.draft_reply)}, this)">📋 Copy Reply</button>
+                                    ${email.reply_time ? `<div class="processing-time">Generated in ${email.reply_time}s</div>` : ''}
+                                </div>
+                            </div>
+                        </div>
+                    ` : isProcessing ? `
+                        <div class="email-content">
+                            <div class="content-section">
+                                <div class="section-title">⏳ Generating Draft Reply...</div>
+                                <div class="section-content">
+                                    <div class="loading"></div> Creating AI draft reply...
+                                </div>
+                            </div>
+                        </div>
+                    ` : ''}
+                    
+                    ${!hasSummary && !hasReply && !isProcessing && email.body ? `
+                        <div class="email-content">
+                            <div class="content-section">
+                                <div class="section-title">📄 Original Email</div>
+                                <div class="section-content">${formatReply(email.body)}</div>
+                            </div>
+                        </div>
+                    ` : ''}
+                </div>
+            `;
+            }).join('');
+            
+            // Create a hash to compare content without full re-render
+            const contentHash = emailHTML.length + filteredEmails.length;
+            if (!container.dataset.contentHash || container.dataset.contentHash != contentHash) {
+                // Only update if content actually changed
+                const wasEmpty = container.innerHTML.trim() === '';
+                container.innerHTML = emailHTML;
+                container.dataset.contentHash = contentHash;
+                
+                // Remove new-email class after animation (only if we just rendered)
+                if (!wasEmpty) {
+                    setTimeout(() => {
+                        container.querySelectorAll('.new-email').forEach(card => {
+                            card.classList.remove('new-email');
+                        });
+                    }, 2000);
+                }
+            }
+        }
+
+        function updateStats() {
+            animateValue('total-emails', emails.length, 500);
+            
+            const today = new Date().toDateString();
+            const todayEmails = emails.filter(e => {
+                if (!e.date) return false;
+                return new Date(e.date).toDateString() === today;
+            });
+            animateValue('processed-today', todayEmails.length, 500);
+            
+            const times = emails
+                .map(e => (e.summary_time || 0) + (e.reply_time || 0))
+                .filter(t => t > 0);
+            const avgTime = times.length > 0 
+                ? (times.reduce((a, b) => a + b, 0) / times.length).toFixed(1)
+                : 0;
+            const avgTimeElement = document.getElementById('avg-time');
+            animateValue('avg-time', parseFloat(avgTime), 500, 's');
+        }
+
+        function animateValue(elementId, target, duration, suffix = '') {
+            const element = document.getElementById(elementId);
+            if (!element) return;
+            
+            const currentText = element.textContent || '0';
+            const start = parseFloat(currentText.replace(suffix, '').replace(/[^0-9.]/g, '')) || 0;
+            const increment = (target - start) / (duration / 16);
+            let current = start;
+            
+            // Clear any existing animation
+            if (element.animationTimer) {
+                clearInterval(element.animationTimer);
+            }
+            
+            element.animationTimer = setInterval(() => {
+                current += increment;
+                if ((increment > 0 && current >= target) || (increment < 0 && current <= target)) {
+                    current = target;
+                    clearInterval(element.animationTimer);
+                    delete element.animationTimer;
+                }
+                element.textContent = Math.round(current) + suffix;
+            }, 16);
+        }
+
+        function toggleExpand(btn, contentId) {
+            const content = document.getElementById(contentId);
+            content.classList.toggle('expanded');
+            btn.classList.toggle('expanded');
+            btn.textContent = content.classList.contains('expanded') ? '▲' : '▼';
+        }
+
+        function copyToClipboard(text, btn) {
+            navigator.clipboard.writeText(text).then(() => {
+                const originalText = btn.textContent;
+                btn.textContent = '✓ Copied!';
+                btn.classList.add('copied');
+                setTimeout(() => {
+                    btn.textContent = originalText;
+                    btn.classList.remove('copied');
+                }, 2000);
+            }).catch(err => {
+                console.error('Failed to copy:', err);
+            });
+        }
+
+
+        function formatDate(dateString) {
+            if (!dateString) return 'Unknown date';
+            const date = new Date(dateString);
+            return date.toLocaleString('en-US', {
+                month: 'short',
+                day: 'numeric',
+                year: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        }
+
+        function formatReply(reply) {
+            if (!reply) return '';
+            // Preserve line breaks and format
+            return escapeHtml(reply).replace(/\n/g, '<br>');
+        }
+
+        function escapeHtml(text) {
+            if (!text) return '';
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // Load emails on page load
+        loadEmails();
+        
+        // Refresh less frequently and only when needed to prevent blinking
+        let lastEmailCount = 0;
+        let lastUpdateTime = Date.now();
+        
+        setInterval(async () => {
+            if (!document.hidden) {
+                try {
+                    const response = await fetch('/api/emails');
+                    const data = await response.json();
+                    const newEmails = data.emails || [];
+                    
+                    // Only update if:
+                    // 1. Email count changed, OR
+                    // 2. It's been more than 30 seconds since last update
+                    const timeSinceUpdate = Date.now() - lastUpdateTime;
+                    const countChanged = newEmails.length !== lastEmailCount || newEmails.length !== emails.length;
+                    
+                    if (countChanged || timeSinceUpdate > 30000) {
+                        lastEmailCount = newEmails.length;
+                        lastUpdateTime = Date.now();
+                        
+                        const wasFirstLoad = previousEmailCount === 0 && emails.length === 0;
+                        if (!wasFirstLoad && newEmails.length > previousEmailCount) {
+                            const newCount = newEmails.length - previousEmailCount;
+                            showToast(`📧 ${newCount} new email${newCount > 1 ? 's' : ''} processed!`);
+                        }
+                        
+                        // Only update if emails actually changed
+                        const emailsChanged = JSON.stringify(emails.map(e => e.email_id)) !== 
+                                             JSON.stringify(newEmails.map(e => e.email_id));
+                        
+                        if (emailsChanged || wasFirstLoad) {
+                            emails = newEmails;
+                            previousEmailCount = emails.length;
+                            applyFilter();
+                            renderEmails();
+                            updateStats();
+                        }
+                    }
+                } catch (error) {
+                    console.error('Error checking for updates:', error);
+                }
+            }
+        }, 15000); // Check every 15 seconds, but only update if needed
+        
+        // Remove new-email class after animation completes
+        let newEmailTimeout;
+        function removeNewEmailClass() {
+            if (newEmailTimeout) clearTimeout(newEmailTimeout);
+            newEmailTimeout = setTimeout(() => {
+                document.querySelectorAll('.new-email').forEach(card => {
+                    card.classList.remove('new-email');
+                });
+            }, 2000);
+        }
+        
+        // Removed wrapper - now handled inside renderEmails
+    </script>
+</body>
+</html>
+

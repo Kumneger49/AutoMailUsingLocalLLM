@@ -12,6 +12,6 @@ Email: "{email_content}"
 start_time = time.time()
 response = generate(model="llama3.2:latest", prompt=prompt)
 end_time = time.time()
-print("Draft reply:\n", response.response)
+print("Draft reply:\n", response)
 print(f"took: {end_time-start_time}:.2f")
 
