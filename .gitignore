@@ -1,2 +1,26 @@
+# Sensitive files - DO NOT COMMIT
+token.json
+credentials.json
 
+# Data files
+.processed_emails.json
+.processed_email_ids.json
+.last_history_id
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
 venv/
+env/
+ENV/
+
+# IDE
+.DS_Store
+.vscode/
+.idea/
+
+# OS
+.DS_Store
